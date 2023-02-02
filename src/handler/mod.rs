@@ -2,9 +2,7 @@ use crate::commands;
 
 use serenity::async_trait;
 use serenity::model::application::command::Command;
-use serenity::model::application::interaction::{
-    Interaction, InteractionResponseType,
-};
+use serenity::model::application::interaction::Interaction;
 use serenity::model::gateway::Ready;
 use serenity::prelude::*;
 
@@ -16,6 +14,8 @@ pub struct Handler {
 impl EventHandler for Handler {
     async fn interaction_create(&self, ctx: Context, interaction: Interaction) {
         if let Interaction::ApplicationCommand(command) = interaction {
+            command.defer(&ctx.http).await.unwrap();
+
             let content = match command.data.name.as_str() {
                 "color" => {
                     commands::color::run(&ctx, &command, &self.database).await
@@ -23,22 +23,17 @@ impl EventHandler for Handler {
                 "clear" => {
                     commands::clear::run(&ctx, &command, &self.database).await
                 }
+                "pfp" => commands::pfp::run(&ctx, &command, &self.database).await,
                 "ping" => commands::ping::run(&command.data.options),
                 _ => "not implemented :(".to_string(),
             };
 
-            if let Err(why) = command
-                .create_interaction_response(&ctx.http, |response| {
-                    response
-                        .kind(InteractionResponseType::ChannelMessageWithSource)
-                        .interaction_response_data(|message| {
-                            message.content(content)
-                        })
+            command
+                .edit_original_interaction_response(&ctx.http, |response| {
+                    response.content(content)
                 })
                 .await
-            {
-                println!("Cannot respond to slash command: {}", why);
-            }
+                .unwrap();
         }
     }
 
@@ -53,6 +48,9 @@ impl EventHandler for Handler {
                     })
                     .create_application_command(|command| {
                         commands::clear::register(command)
+                    })
+                    .create_application_command(|command| {
+                        commands::pfp::register(command)
                     })
                     .create_application_command(|command| {
                         commands::ping::register(command)
