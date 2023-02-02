@@ -20,6 +20,9 @@ impl EventHandler for Handler {
                 "color" => {
                     commands::color::run(&ctx, &command, &self.database).await
                 }
+                "clear" => {
+                    commands::clear::run(&ctx, &command, &self.database).await
+                }
                 "ping" => commands::ping::run(&command.data.options),
                 _ => "not implemented :(".to_string(),
             };
@@ -47,6 +50,9 @@ impl EventHandler for Handler {
                 commands
                     .create_application_command(|command| {
                         commands::color::register(command)
+                    })
+                    .create_application_command(|command| {
+                        commands::clear::register(command)
                     })
                     .create_application_command(|command| {
                         commands::ping::register(command)
