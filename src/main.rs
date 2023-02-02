@@ -1,5 +1,6 @@
 mod commands;
 mod handler;
+mod utils;
 
 use crate::handler::Handler;
 use dotenv::dotenv;
