@@ -12,3 +12,4 @@ tokio = { version = "1.21.2", features = ["macros", "rt-multi-thread"] }
 dotenv = "0.15.0"
 regex = "1"
 lazy_static = "1.4.0"
+sqlx = { version = "0.6", features = [ "runtime-tokio-rustls", "sqlite", "offline" ] }

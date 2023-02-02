@@ -8,16 +8,18 @@ use serenity::model::application::interaction::{
 use serenity::model::gateway::Ready;
 use serenity::prelude::*;
 
-pub struct Handler;
+pub struct Handler {
+    pub database: sqlx::SqlitePool,
+}
 
 #[async_trait]
 impl EventHandler for Handler {
     async fn interaction_create(&self, ctx: Context, interaction: Interaction) {
         if let Interaction::ApplicationCommand(command) = interaction {
-            println!("Received command interaction: {:#?}", command);
-
             let content = match command.data.name.as_str() {
-                "color" => commands::color::run(&command.data.options),
+                "color" => {
+                    commands::color::run(&ctx, &command, &self.database).await
+                }
                 "ping" => commands::ping::run(&command.data.options),
                 _ => "not implemented :(".to_string(),
             };
@@ -52,6 +54,8 @@ impl EventHandler for Handler {
             })
             .await;
 
-        println!("Created the following slash command: {:#?}", commands);
+        if let Err(error) = commands {
+            println!("Created the following slash command: {:#?}", error);
+        }
     }
 }
