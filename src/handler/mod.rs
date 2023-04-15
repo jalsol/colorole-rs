@@ -23,6 +23,7 @@ impl EventHandler for Handler {
                 "clear" => {
                     commands::clear::run(&ctx, &command, &self.database).await
                 }
+                "sync" => commands::sync::run(&ctx, &command, &self.database).await,
                 "pfp" => commands::pfp::run(&ctx, &command, &self.database).await,
                 "ping" => commands::ping::run(&command.data.options),
                 _ => "not implemented :(".to_string(),
@@ -48,6 +49,9 @@ impl EventHandler for Handler {
                     })
                     .create_application_command(|command| {
                         commands::clear::register(command)
+                    })
+                    .create_application_command(|command| {
+                        commands::sync::register(command)
                     })
                     .create_application_command(|command| {
                         commands::pfp::register(command)

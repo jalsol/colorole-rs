@@ -100,7 +100,7 @@ pub async fn set_color(
             if let Err(error) = response {
                 return format!("{:#?}", error);
             } else {
-                println!("Inserted role id: {}", role_id_str);
+                println!("Inserted role id: {}, color is {}", role_id_str, color);
             }
 
             role_id
