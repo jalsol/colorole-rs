@@ -32,7 +32,10 @@ pub async fn run(
         return format!("#{} is **not** a hex color code", color).to_string();
     }
 
-    utils::set_color(&ctx, &interaction, &database, color).await
+    let guild_id = interaction.guild_id.unwrap();
+    let mut member = guild_id.member(ctx, &interaction.user).await.unwrap();
+
+    utils::set_color(&ctx, &database, guild_id, &mut member, color).await
 }
 
 pub fn register(

@@ -2,10 +2,7 @@ use color_thief::ColorFormat;
 use lazy_static::lazy_static;
 use regex::Regex;
 use serenity::{
-    model::prelude::{
-        interaction::application_command::ApplicationCommandInteraction, RoleId,
-        UserId,
-    },
+    model::prelude::{GuildId, Member, RoleId, UserId},
     prelude::Context,
 };
 
@@ -47,14 +44,13 @@ pub fn find_color(t: image::ColorType) -> ColorFormat {
 
 pub async fn set_color(
     ctx: &Context,
-    interaction: &ApplicationCommandInteraction,
     database: &sqlx::SqlitePool,
+    guild_id: GuildId,
+    member: &mut Member,
     color: String,
 ) -> String {
-    let guild_id = interaction.guild_id.unwrap();
     let guild_id_str = guild_id.as_u64().to_string();
 
-    let mut member = guild_id.member(ctx, &interaction.user).await.unwrap();
     let member_id = member.user.id;
     let member_id_str = member_id.to_string();
 
@@ -81,7 +77,10 @@ pub async fn set_color(
         Err(_) => {
             let result = guild_id
                 .create_role(&ctx, |r| {
-                    r.hoist(true).name(&color).colour(hex_to_dec(&color))
+                    r.hoist(false)
+                        .name(&color)
+                        .colour(hex_to_dec(&color))
+                        .mentionable(false)
                 })
                 .await;
 
@@ -110,6 +109,8 @@ pub async fn set_color(
     let role_id_str = role_id.to_string();
     member.add_role(ctx, role_id).await.unwrap();
 
+    clear_color(&ctx, &database, guild_id, member).await;
+
     let response = sqlx::query!(
         "REPLACE INTO members(id, guild_id, role_id) VALUES(?, ?, ?)",
         member_id_str,
@@ -124,4 +125,39 @@ pub async fn set_color(
     }
 
     format!("<@{}> → #{}", member_id, color)
+}
+
+pub async fn clear_color(
+    ctx: &Context,
+    database: &sqlx::SqlitePool,
+    guild_id: GuildId,
+    member: &mut Member,
+) -> String {
+    let guild_id_str = guild_id.as_u64().to_string();
+
+    let member_id = member.user.id;
+    let member_id_str = member_id.to_string();
+
+    let result = get_member_color(member_id, database).await;
+
+    if let Err(_) = result {
+        return "No color to clear".to_string();
+    }
+
+    let role_id = result.unwrap().0;
+    member.remove_role(ctx, role_id).await.unwrap();
+
+    let response = sqlx::query!(
+        "DELETE FROM members WHERE id = ? AND guild_id = ?",
+        member_id_str,
+        guild_id_str,
+    )
+    .execute(database)
+    .await;
+
+    if let Err(error) = response {
+        return format!("{:#?}", error);
+    }
+
+    format!("Cleared color for <@{}>", member_id)
 }

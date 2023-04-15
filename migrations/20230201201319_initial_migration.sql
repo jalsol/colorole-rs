@@ -3,7 +3,7 @@ PRAGMA foreign_keys = ON;
 CREATE TABLE IF NOT EXISTS roles(
     id BIGINT NOT NULL UNIQUE,
     guild_id BIGINT NOT NULL,
-    color CHAR(6) NOT NULL,
+    color CHAR(6) NOT NULL UNIQUE,
     PRIMARY KEY (id)
 );
 

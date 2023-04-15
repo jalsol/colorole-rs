@@ -46,7 +46,10 @@ pub async fn run(
         best_color.r, best_color.g, best_color.b
     );
 
-    utils::set_color(&ctx, &interaction, &database, color).await
+    let guild_id = interaction.guild_id.unwrap();
+    let mut member = guild_id.member(ctx, &interaction.user).await.unwrap();
+
+    utils::set_color(&ctx, &database, guild_id, &mut member, color).await
 }
 
 pub fn register(

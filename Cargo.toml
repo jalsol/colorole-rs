@@ -4,8 +4,6 @@ version = "0.1.0"
 edition = "2021"
 authors = ["Quang-Truong Nguyen <jalsol@pm.me>"]
 
-# See more keys and their definitions at https://doc.rust-lang.org/cargo/reference/manifest.html
-
 [dependencies]
 serenity = { version = "0.11", default-features = false, features = ["client", "gateway", "rustls_backend", "model"] }
 tokio = { version = "1.21.2", features = ["full"] }
